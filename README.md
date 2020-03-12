@@ -2,9 +2,9 @@
 
 [trs2impl](trs2impl): implementation of miniKanren by authors of trs2.
 
-[exercise.rkt](exercise.rkt): my reproduction of the example programs in trs2 uptil the bit alrithmatics chapters.
+[exercise.rkt](exercise.rkt): my reproduction of the example programs in trs2 uptil the bit arithmetics chapters.
 
-[bit-arith.rkt](bit-arith.rkt) : my reproduction of the example programs in the bit alrithmatics chapters. 
+[bit-arith.rkt](bit-arith.rkt) : my reproduction of the example programs in the bit arithmetics chapters. 
 Division (by spliting the numbers) is not fully undetstood and logarithmic is skipped.
 
 [trit-arith.rkt](trit-arith.rkt): an exercise that I set for myself where I define addition for trinary numbers.  
