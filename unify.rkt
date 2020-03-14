@@ -77,15 +77,16 @@
       (else e))))
 
 
-;(walk x `((,x . a)(,y . b)))
-;
-;(walk x `((,x . ,z)(,y . b)))
-;
-;(walk x `((,x . `(,y a))(,y . b)))
-;
-;(walk x `((,x . ,y)(,y . b)))
-;
-;(walk u `((,x . a)(,y . b)))
+#;(walk x `((,x . a)(,y . b)))
+
+#;(walk x `((,x . ,z)(,y . b)))
+
+#;(walk x `((,x . `(,y a))(,y . b)))
+
+#;(walk x `((,x . ,y)(,y . b)))
+
+#;(walk u `((,x . a)(,y . b)))
+
 
 (define (ext-s x v s)
   (cond
@@ -141,6 +142,7 @@
   (lambda (s)
     (lambda () ((nevero) s))))
 
+
 #;(let ((s-inf ((disj2 (== 'olive x) (nevero)) empty-s))) s-inf)
 
 #;(let ((s-inf ((disj2 (== 'olive x) (nevero)) empty-s)))
@@ -152,10 +154,12 @@
 #;(let ((s-inf ((disj2 (nevero) (== 'olive x)) empty-s)))
     (s-inf))
 
+
 (define (alwayso)
   (lambda (s)
     (lambda ()
       ((disj2 succeed (alwayso)) s))))
+
 
 #;(((alwayso) empty-s))
 
@@ -174,6 +178,7 @@
                   (let ((s-inf ((cdr s-inf))))
                     (cons (car s-inf) '()))))))
 
+
 (define (take-inf n s-inf)
   (cond
     ((and n (zero? n))'())
@@ -183,6 +188,7 @@
            (take-inf (and n (sub1 n))
                      (cdr s-inf))))
     (else (take-inf n (s-inf)))))
+
 
 #;(let ((k (length
             (take-inf 5
@@ -197,6 +203,8 @@
                          (== 'oil x))
                   empty-s)))
 
+
+
 (define (append-map-inf g s-inf)
   (cond
     ((null? s-inf) '())
@@ -206,22 +214,28 @@
     (else (lambda ()
             (append-map-inf g (s-inf))))))
 
+
 (define (conj2 g1 g2)
   (lambda (s)
     (append-map-inf g2 (g1 s))))
 
+
 (define (call/fresh name f)
   (f (var name)))
+
 
 #;(take-inf 1 ((call/fresh 'kiwi
                            (lambda (fruit)
                              (== 'plum fruit)))
                empty-s))
 
+
+
 (define (reify-name n)
   (string->symbol
    (string-append "_"
                   (number->string n))))
+
 
 (define (walk* v s)
   (let ((v (walk v s)))
@@ -232,6 +246,7 @@
         (walk* (car v) s)
         (walk* (cdr v) s)))
       (else v))))
+
 
 (define (reify-s v r)
   (let ((v (walk v r)))
@@ -244,6 +259,7 @@
        (let ((r (reify-s (car v) r)))
          (reify-s (cdr v) r)))
       (else r))))
+
 
 #;(reify-s x '())
 
@@ -258,6 +274,7 @@
 #;(reify-s x `((,x . _0)))
 
 #;(reify-s `(,x (e ,y) ((,z))) '())
+
 
 (define (reify v)
   (lambda (s)
@@ -283,14 +300,71 @@
                  ((disj2 (== 'olive x)
                          (== 'oil x)) empty-s)))
 
+
 (define (run-goal n g)
   (take-inf n (g empty-s)))
+
 
 
 #;(map (reify x)
        (run-goal 5
                  (disj2 (== 'olive x)
                         (== 'oil x))))
+
+
+(define (nullo x)
+  (== '() x))
+
+
+(define (conso a d p)
+  (== p (cons a d)))
+
+
+(define (appendo left right total)
+  (lambda (s)
+    ((disj2 (conj2 (nullo left) (== right total))
+            (call/fresh
+             'a
+             (lambda (a)
+               (call/fresh
+                'd
+                (lambda (d)
+                  (call/fresh
+                   'res
+                   (lambda (res)
+                     (conj2 (conso a d left)
+                            (conj2 (conso a res total)
+                                   (appendo d right res))))))))))
+     s)))
+
+
+#;(let ((r ((appendo x y '(1 2 3)) empty-s)))
+  (let ((s1 (car r)))
+    (let ((s2 (car (cdr r))))
+      (let ((s3 (car (cdr (cdr r)))))
+        (let ((s4 (car (cdr (cdr (cdr r))))))
+          (list
+           (list `(,x . ,(walk* x s1)) `(,y . ,(walk* y s1)))
+           (list `(,x . ,(walk* x s2)) `(,y . ,(walk* y s2)))
+           (list `(,x . ,(walk* x s3)) `(,y . ,(walk* y s3)))
+           (list `(,x . ,(walk* x s4)) `(,y . ,(walk* y s4)))))))))
+  
+
+#;(let ((q (var 'q)))
+  (map (reify q)
+       (run-goal
+        #f
+        (call/fresh
+         'x
+         (lambda (x)
+           (call/fresh
+            'y
+            (lambda (y)
+              (conj2
+               (== q `(,x ,y))
+               (appendo x y
+                        '(cake & ice d t))))))))))
+
 
 (define (ifte g1 g2 g3)
   (lambda (s)
@@ -313,6 +387,7 @@
   (lambda (s)
     ((ifte-helper (g1 s)) g2 g3 s)))
 
+
 #;((iftes succeed (== x 'olive) (== x 'oil)) empty-s)
 
 #;((iftes fail (== x 'olive) (== x 'oil)) empty-s)
@@ -327,52 +402,103 @@
 #;((ifte (disj2 (== y 'spicy) (== y 'greek))
          (== x 'olive) (== x 'oil)) empty-s)
 
-(define (nullo x)
-  (== '() x))
 
-(define (conso a d p)
-  (== p (cons a d)))
-
-(define (appendo left right total)
+(define (once g)
   (lambda (s)
-    ((disj2 (conj2 (nullo left) (== right total))
-            (call/fresh
-             'a
-             (lambda (a)
-               (call/fresh
-                'd
-                (lambda (d)
-                  (call/fresh
-                   'res
-                   (lambda (res)
-                     (conj2 (conso a d left)
-                            (conj2 (conso a res total)
-                                   (appendo d right res))))))))))
-     s)))
+    (let loop ((s-inf (g s)))
+      (cond
+        ((null? s-inf) '())
+        ((pair? s-inf)
+         (cons (car s-inf) '()))
+        (else (lambda ()
+                       (loop (s-inf))))))))
 
-(let ((r ((appendo x y '(1 2 3)) empty-s)))
-  (let ((s1 (car r)))
-    (let ((s2 (car (cdr r))))
-      (let ((s3 (car (cdr (cdr r)))))
-        (let ((s4 (car (cdr (cdr (cdr r))))))
-          (list
-           (list `(,x . ,(walk* x s1)) `(,y . ,(walk* y s1)))
-           (list `(,x . ,(walk* x s2)) `(,y . ,(walk* y s2)))
-           (list `(,x . ,(walk* x s3)) `(,y . ,(walk* y s3)))
-           (list `(,x . ,(walk* x s4)) `(,y . ,(walk* y s4)))))))))
-  
 
-(let ((q (var 'q)))
-  (map (reify q)
-       (run-goal
-        #f
-        (call/fresh
-         'x
-         (lambda (x)
-           (call/fresh
-            'y
-            (lambda (y)
-              (conj2
-               (== q `(,x ,y))
-               (appendo x y
-                        '(cake & ice d t))))))))))
+#;(run-goal #f (iftes
+  (once
+   (disj2 (== 'olive x) (== 'oil x)))
+  (== #f y)
+  (== #t y)))
+
+(define-syntax disj
+  (syntax-rules ()
+    ((disj) fail)
+    ((disj g) g)
+    ((disj g0 g ...)
+    (disj2 g0 (disj g ...)))))
+
+(define-syntax conj
+  (syntax-rules ()
+    ((conj) succeed)
+    ((conj g) g)
+    ((conj g0 g ...)
+    (conj2 g0 (conj g ...)))))
+
+(define-syntax defrel
+  (syntax-rules ()
+    ((defrel (name x ...) g ...)
+     (define (name x ...)
+       (lambda (s)
+         (lambda ()
+           ((conj g ...) s)))))))
+
+(define-syntax fresh
+  (syntax-rules ()
+    ((fresh () g ...)(conj g ...))
+    ((fresh (x0 x ...) g ...)
+     (call/fresh 'x0
+                 (lambda (x0)
+                   (fresh (x ...) g ...))))))
+
+(define-syntax run
+  (syntax-rules ()
+    ((run n (x0 x ...) g ...)
+     (run n q (fresh (x0 x ...)
+                     (== `(,x0 ,x ...) q)
+                     g ...)))
+    ((run n q g ...)
+     (let ((q (var 'q)))
+       (map (reify q)
+            (run-goal n (conj g ...)))))))
+
+(define-syntax run*
+  (syntax-rules ()
+    ((run* q g ...)
+     (run #f q g ...))))
+
+(define-syntax conde
+  (syntax-rules ()
+    ((conde (g ...) ...)
+     (disj (conj g ...) ...))))
+
+(define-syntax conda
+  (syntax-rules ()
+    ((conda (g0 g ...))
+     (conj g0 g ...))
+    ((conda (g0 g ...) ln ...)
+     (ifte g0 (conj g ...) (conda ln ...)))))
+
+(define-syntax condu
+  (syntax-rules ()
+    ((condu (g0 g ...) ...)
+     (conda ((once g0) g ...) ...))))
+
+; test runs
+
+#;(run* x
+      (condu
+       ((conde
+         ((== x 'tea))
+         ((== x 'cup))) succeed)
+       (succeed fail)))
+
+(defrel (onceo g)
+  (condu
+   (g succeed)
+   (succeed fail)))
+
+
+(run 1 q
+       (conda
+        ((onceo (alwayso)) succeed)
+        (succeed fail)))

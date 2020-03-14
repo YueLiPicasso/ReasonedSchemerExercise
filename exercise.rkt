@@ -4,8 +4,8 @@
 
 ;;; Yue exercise code
 
-(defrel (teacupo t)
-  (disj2 (== t 'tea) (== t 'cup)))
+#;(defrel (teacupo t)
+    (disj2 (== t 'tea) (== t 'cup)))
 
 
 (defrel (nullo x)
@@ -183,3 +183,125 @@
 (defrel (>1o n)
   (fresh (a ad dd)
          (== `(,a ,ad . ,dd) n)))
+
+
+#;(run* x (conda
+           ((== 'olive x) succeed)
+           (succeed (== 'oil x))))
+
+#;(run* x
+        (conda
+         ((== 'virin x) fail)
+         ((== 'olive x) succeed)
+         (succeed (== 'oil x))))
+
+; compare with above
+#;(run* x
+        (conde
+         ((== 'virin x) fail)
+         ((== 'olive x) succeed)
+         (succeed (== 'oil x))))
+
+#;(run* q
+        (fresh (x y)
+               (== 'split x)
+               (== 'pea y)
+               (conda
+                ((== 'split x) (== x y))
+                (succeed succeed))))
+
+#;(run* q
+        (fresh (x y)
+               (== 'split x)
+               (== 'pea y)
+               (conda
+                ((== x y)(== 'split x))
+                (succeed succeed))))
+
+#;(run* q
+        (fresh (x y)
+               (== 'split x)
+               (== 'pea y)
+               (conde
+                ((== x y)(== 'split x))
+                (succeed succeed))))
+
+(defrel (not-pastao x)
+  (conda
+   ((== 'pasta x) fail)
+   (succeed succeed)))
+
+#;(run 2 x (not-pastao x))
+
+#;(run* x
+        (conda
+         ((not-pastao x) fail)
+         ((== 'spaghetti x) succeed)))
+
+#;(run* x
+        (== 'spaghetti x)
+        (conda
+         ((not-pastao x) fail)
+         ((== 'spaghetti x) succeed)))
+
+#;(run 5 q
+       (conda
+        ((alwayso) succeed)
+        (succeed fail)))
+
+#;(run* q
+        (condu
+         ((alwayso) succeed)
+         (succeed fail)))
+
+#;(run 3 q
+       (condu
+        (succeed (alwayso))
+        (succeed fail)))
+
+#;(run 1 q
+       (conda
+        ((alwayso) succeed)
+        (succeed fail))
+       fail)
+
+#;(run 1 q
+       (condu
+        ((alwayso) succeed)
+        (succeed fail))
+       fail)
+
+(defrel (teacupo t)
+  (conde
+   ((== t 'tea))
+   ((== t 'cup))))
+
+(defrel (onceo g)
+  (condu
+   (g succeed)
+   (succeed fail)))
+
+#;(run* x
+      (onceo (teacupo x)))
+
+; the above equals 
+#;(run* x
+      (condu
+       ((conde
+         ((== x 'tea))
+         ((== x 'cup))) succeed)
+       (succeed fail)))
+
+#;(run* x
+      (conde
+       ((conde
+         ((== x 'tea))
+         ((== x 'cup))) succeed)
+       ((== #f x) succeed)))
+
+(run* x
+      (conda
+       ((conde
+         ((== x 'tea))
+         ((== x 'cup))) succeed)
+       ((== #f x) succeed)))
